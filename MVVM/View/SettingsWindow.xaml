@@ -1,0 +1,54 @@
+<Window x:Class="MouseJigglerPro.MVVM.View.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Настройки" Height="450" Width="400"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0">
+            <TabItem Header="Движение">
+                <StackPanel Margin="10">
+                    <Label Content="Интервал движения (секунды):"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,15">
+                        <Label Content="От:"/>
+                        <TextBox Text="{Binding EditableSettings.MinIntervalSeconds, UpdateSourceTrigger=PropertyChanged}" Width="50" Margin="5,0"/>
+                        <Label Content="До:"/>
+                        <TextBox Text="{Binding EditableSettings.MaxIntervalSeconds, UpdateSourceTrigger=PropertyChanged}" Width="50" Margin="5,0"/>
+                    </StackPanel>
+
+                    <Label Content="Дистанция движения (пиксели):"/>
+                    <Slider Value="{Binding EditableSettings.JiggleDistance}" Minimum="1" Maximum="100" IsSnapToTickEnabled="True" TickFrequency="1" Margin="0,5,0,15"/>
+                    <TextBlock Text="{Binding Value, ElementName=JiggleDistanceSlider, StringFormat={}{0:F0} px}" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Zen Mode">
+                <StackPanel Margin="10">
+                    <CheckBox IsChecked="{Binding EditableSettings.IsZenModeEnabled}" Content="Включить Zen Mode" Margin="0,10"/>
+                    <Label Content="Время бездействия для активации (секунды):"/>
+                    <TextBox Text="{Binding EditableSettings.ZenModeIdleTimeSeconds, UpdateSourceTrigger=PropertyChanged}" Width="60" HorizontalAlignment="Left" Margin="0,5,0,15"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Другое">
+                <StackPanel Margin="10">
+                    <CheckBox IsChecked="{Binding EditableSettings.IsPhantomKeystrokeEnabled}" Content="Эмуляция нажатия клавиш (Phantom Keystroke)" Margin="0,10"/>
+                    <CheckBox IsChecked="{Binding EditableSettings.StartWithWindows}" Content="Запускать при старте Windows" Margin="0,5"/>
+                    <CheckBox IsChecked="{Binding EditableSettings.StartMinimized}" Content="Запускать свернутым" Margin="0,5"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Сохранить" Command="{Binding SaveCommand}" Padding="15,5" Margin="5"/>
+            <Button Content="Отмена" Command="{Binding CancelCommand}" Padding="15,5" Margin="5"/>
+            <Button Content="По умолчанию" Command="{Binding ResetToDefaultCommand}" Padding="15,5" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</Window>
