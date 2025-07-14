@@ -49,6 +49,7 @@ namespace MouseJigglerPro.MVVM.ViewModel
             _jiggleEngine = new JiggleEngine(_settings);
             _zenModeService = new ZenModeService(_settings, _jiggleEngine);
             // Подписка на событие изменения состояния Zen Mode.
+            _jiggleEngine.StoppedByUser += OnJiggleEngineStopped;
             _zenModeService.StateChanged += OnZenModeStateChanged;
 
             // Инициализация команд.
@@ -152,6 +153,13 @@ namespace MouseJigglerPro.MVVM.ViewModel
                     (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
                     break;
             }
+        }
+
+        private void OnJiggleEngineStopped()
+        {
+            StatusText = "Ожидание";
+            ToggleButtonText = "Старт";
+            (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
         }
     }
 

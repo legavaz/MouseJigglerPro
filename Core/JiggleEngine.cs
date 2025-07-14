@@ -41,12 +41,14 @@ namespace MouseJigglerPro.Core
         /// <summary>
         /// Останавливает цикл движения мыши.
         /// </summary>
+        public event Action? StoppedByUser;
         public void Stop()
         {
             if (!IsRunning) return; // Не останавливать, если уже остановлен.
 
             _cancellationTokenSource?.Cancel(); // Отправляем сигнал отмены.
             IsRunning = false;
+            StoppedByUser?.Invoke();
         }
 
         /// <summary>
@@ -73,6 +75,28 @@ namespace MouseJigglerPro.Core
                 {
                     // Выходим из цикла, если задача была отменена.
                     break;
+                }
+            }
+        }
+
+        private async Task MonitorUserInput(CancellationToken token)
+        {
+            uint lastInputTime = PInvokeHelper.GetLastInputTime();
+
+            while (!token.IsCancellationRequested)
+            {
+                await Task.Delay(250, token); // Проверяем 4 раза в секунду
+
+                uint currentInputTime = PInvokeHelper.GetLastInputTime();
+
+                if (currentInputTime != lastInputTime)
+                {
+                    // Пользователь пошевелил мышью или нажал клавишу
+                    if (IsRunning)
+                    {
+                        Stop();
+                    }
+                    lastInputTime = currentInputTime;
                 }
             }
         }

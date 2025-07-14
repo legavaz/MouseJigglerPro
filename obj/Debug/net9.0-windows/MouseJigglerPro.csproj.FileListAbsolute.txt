@@ -21,3 +21,4 @@ C:\project\MouseJigglerPro\obj\Debug\net9.0-windows\refint\MouseJigglerPro.dll
 C:\project\MouseJigglerPro\obj\Debug\net9.0-windows\MouseJigglerPro.pdb
 C:\project\MouseJigglerPro\obj\Debug\net9.0-windows\MouseJigglerPro.genruntimeconfig.cache
 C:\project\MouseJigglerPro\obj\Debug\net9.0-windows\ref\MouseJigglerPro.dll
+C:\project\MouseJigglerPro\obj\Debug\net9.0-windows\MouseJigglerPro.sourcelink.json
