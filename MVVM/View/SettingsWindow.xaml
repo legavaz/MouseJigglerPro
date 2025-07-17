@@ -6,6 +6,7 @@
         mc:Ignorable="d"
         Title="Настройки" Height="450" Width="400"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Icon="/Assets/Icons/default.ico"
         Loaded="Window_Loaded" Unloaded="Window_Unloaded">
     <Grid Margin="15">
         <Grid.RowDefinitions>

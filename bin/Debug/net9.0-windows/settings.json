@@ -1,9 +1,9 @@
 {
   "MinIntervalSeconds": 2,
   "MaxIntervalSeconds": 10,
-  "JiggleDistance": 19,
+  "JiggleDistance": 53,
   "IsZenModeEnabled": true,
-  "ZenModeIdleTimeSeconds": 10,
+  "ZenModeIdleTimeSeconds": 5,
   "IsPhantomKeystrokeEnabled": false,
   "StartWithWindows": false,
   "StartMinimized": false

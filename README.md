@@ -68,7 +68,11 @@
     git clone https://github.com/legavaz/MouseJigglerPro
     ```
 2.  Откройте файл решения (`MouseJigglerPro/MouseJigglerPro.csproj`) в Visual Studio.
-3.  Соберите проект (Build -> Build Solution). Исполняемый файл появится в папке `bin/Debug` или `bin/Release`.
+3.  Соберите проект (Build -> Build Solution cmd-"dotnet build"). Исполняемый файл появится в папке `bin/Debug` или `bin/Release`.
+
+cmd-выполнить команду 
+`dotnet build`
+`dotnet build --configuration Release` 
 
 ---
 

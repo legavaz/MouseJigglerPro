@@ -35,7 +35,6 @@ namespace MouseJigglerPro.Core
             _cancellationTokenSource = new CancellationTokenSource();
             // Запускаем цикл в фоновом потоке, чтобы не блокировать UI.
             Task.Run(() => JiggleLoop(_cancellationTokenSource.Token));
-            Task.Run(() => MonitorUserInput(_cancellationTokenSource.Token));
         }
 
         /// <summary>
@@ -79,27 +78,6 @@ namespace MouseJigglerPro.Core
             }
         }
 
-        private async Task MonitorUserInput(CancellationToken token)
-        {
-            uint lastInputTime = PInvokeHelper.GetLastInputTime();
-
-            while (!token.IsCancellationRequested)
-            {
-                await Task.Delay(250, token); // Проверяем 4 раза в секунду
-
-                uint currentInputTime = PInvokeHelper.GetLastInputTime();
-
-                if (currentInputTime != lastInputTime)
-                {
-                    // Пользователь пошевелил мышью или нажал клавишу
-                    if (IsRunning)
-                    {
-                        Stop();
-                    }
-                    lastInputTime = currentInputTime;
-                }
-            }
-        }
 
         /// <summary>
         /// Имитирует однократное движение мыши "туда-обратно" по кривой Безье.

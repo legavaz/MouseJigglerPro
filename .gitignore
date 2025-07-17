@@ -87,3 +87,6 @@ _ReSharper*/
 *~
 
 obj/Debug/net9.0-windows/MouseJigglerPro_MarkupCompile.cache
+*.cache
+/obj/
+

@@ -9,4 +9,9 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
+<ItemGroup>
+    <Resource Include="Assets\Icons\active.ico" />
+    <Resource Include="Assets\Icons\default.ico" />
+    <Resource Include="Assets\Icons\zen.ico" />
+  </ItemGroup>
 </Project>

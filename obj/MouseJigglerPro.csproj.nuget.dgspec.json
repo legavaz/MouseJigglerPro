@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\project\\MouseJigglerPro\\MouseJigglerPro.csproj": {}
+    "D:\\project\\jiggerPro\\MouseJigglerPro\\MouseJigglerPro.csproj": {}
   },
   "projects": {
-    "C:\\project\\MouseJigglerPro\\MouseJigglerPro.csproj": {
+    "D:\\project\\jiggerPro\\MouseJigglerPro\\MouseJigglerPro.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\project\\MouseJigglerPro\\MouseJigglerPro.csproj",
+        "projectUniqueName": "D:\\project\\jiggerPro\\MouseJigglerPro\\MouseJigglerPro.csproj",
         "projectName": "MouseJigglerPro",
-        "projectPath": "C:\\project\\MouseJigglerPro\\MouseJigglerPro.csproj",
+        "projectPath": "D:\\project\\jiggerPro\\MouseJigglerPro\\MouseJigglerPro.csproj",
         "packagesPath": "C:\\Users\\lega\\.nuget\\packages\\",
-        "outputPath": "C:\\project\\MouseJigglerPro\\obj\\",
+        "outputPath": "D:\\project\\jiggerPro\\MouseJigglerPro\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\lega\\AppData\\Roaming\\NuGet\\NuGet.Config"

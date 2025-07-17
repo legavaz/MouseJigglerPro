@@ -27,16 +27,20 @@ namespace MouseJigglerPro.MVVM.ViewModel
             set => SetProperty(ref _statusText, value);
         }
 
-        // Свойство для текста на кнопке Старт/Стоп.
-        private string _toggleButtonText = "Старт";
-        public string ToggleButtonText
+        private bool _isJigglingActive;
+        public bool IsJigglingActive
         {
-            get => _toggleButtonText;
-            set => SetProperty(ref _toggleButtonText, value);
+            get => _isJigglingActive;
+            set
+            {
+                if (SetProperty(ref _isJigglingActive, value))
+                {
+                    ToggleJiggle();
+                }
+            }
         }
 
         // Команды, к которым привязывается View (кнопки, меню и т.д.).
-        public ICommand ToggleJiggleCommand { get; }
         public ICommand OpenSettingsCommand { get; }
         public ICommand ShowWindowCommand { get; }
         public ICommand ExitApplicationCommand { get; }
@@ -49,11 +53,9 @@ namespace MouseJigglerPro.MVVM.ViewModel
             _jiggleEngine = new JiggleEngine(_settings);
             _zenModeService = new ZenModeService(_settings, _jiggleEngine);
             // Подписка на событие изменения состояния Zen Mode.
-            _jiggleEngine.StoppedByUser += OnJiggleEngineStopped;
             _zenModeService.StateChanged += OnZenModeStateChanged;
 
             // Инициализация команд.
-            ToggleJiggleCommand = new RelayCommand(ToggleJiggle);
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             ShowWindowCommand = new RelayCommand(ShowWindow);
             ExitApplicationCommand = new RelayCommand(ExitApplication);
@@ -62,26 +64,9 @@ namespace MouseJigglerPro.MVVM.ViewModel
         /// <summary>
         /// Метод, который запускает или останавливает движение мыши.
         /// </summary>
-        private void ToggleJiggle(object? parameter)
+        private void ToggleJiggle()
         {
-            // Если движок уже запущен, останавливаем его.
-            if (_jiggleEngine.IsRunning || _zenModeService.IsActive)
-            {
-                if (_settings.IsZenModeEnabled)
-                {
-                    _zenModeService.Stop();
-                    StatusText = "Zen Mode выключен";
-                }
-                else
-                {
-                    _jiggleEngine.Stop();
-                }
-                StatusText = "Неактивен";
-                ToggleButtonText = "Старт";
-                (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
-            }
-            // Если движок остановлен, запускаем его.
-            else
+            if (IsJigglingActive)
             {
                 if (_settings.IsZenModeEnabled)
                 {
@@ -95,7 +80,19 @@ namespace MouseJigglerPro.MVVM.ViewModel
                     StatusText = "Активен";
                     (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("active.ico");
                 }
-                ToggleButtonText = "Стоп";
+            }
+            else
+            {
+                if (_zenModeService.IsActive)
+                {
+                    _zenModeService.Stop();
+                }
+                else if (_jiggleEngine.IsRunning)
+                {
+                    _jiggleEngine.Stop();
+                }
+                StatusText = "Неактивен";
+                (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
             }
         }
 
@@ -150,17 +147,12 @@ namespace MouseJigglerPro.MVVM.ViewModel
                     break;
                 case ZenModeService.ZenState.Stopped:
                     StatusText = "Неактивен";
+                    IsJigglingActive = false; // Ensure toggle is off
                     (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
                     break;
             }
         }
 
-        private void OnJiggleEngineStopped()
-        {
-            StatusText = "Ожидание";
-            ToggleButtonText = "Старт";
-            (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
-        }
     }
 
     // Simple ICommand implementation

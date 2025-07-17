@@ -19,7 +19,7 @@ namespace MouseJigglerPro.MVVM.View
         public MainWindow()
         {
             // Инициализирует компоненты, определенные в XAML.
-            InitializeComponent();
+             InitializeComponent();
 
             // Создаем и настраиваем иконку для системного трея.
             _notifyIcon = new NotifyIcon
@@ -58,8 +58,16 @@ namespace MouseJigglerPro.MVVM.View
             if (mainViewModel != null)
             {
                 var startStopItem = new ToolStripMenuItem("Старт");
-                startStopItem.Click += (s, e) => mainViewModel.ToggleJiggleCommand.Execute(null);
-                // TODO: Привязать текст этого пункта меню к состоянию ViewModel (Старт/Стоп).
+                startStopItem.Click += (s, e) => mainViewModel.IsJigglingActive = !mainViewModel.IsJigglingActive;
+
+                // Обновляем текст пункта меню при изменении состояния в ViewModel
+                mainViewModel.PropertyChanged += (sender, args) =>
+                {
+                    if (args.PropertyName == nameof(MainViewModel.IsJigglingActive))
+                    {
+                        startStopItem.Text = mainViewModel.IsJigglingActive ? "Стоп" : "Старт";
+                    }
+                };
 
                 var showItem = new ToolStripMenuItem("Показать окно");
                 showItem.Click += (s, e) => mainViewModel.ShowWindowCommand.Execute(null);

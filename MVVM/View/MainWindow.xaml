@@ -7,7 +7,8 @@
         xmlns:viewModel="clr-namespace:MouseJigglerPro.MVVM.ViewModel"
         mc:Ignorable="d"
         Title="Mouse Jiggler Pro" Height="200" Width="350"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize">
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
+        Icon="/Assets/Icons/default.ico">
 
     <Window.DataContext>
         <viewModel:MainViewModel/>
@@ -28,13 +29,37 @@
                    VerticalAlignment="Center"
                    Foreground="DarkSlateGray"/>
 
-        <Button Grid.Row="1"
-                Content="{Binding ToggleButtonText}"
-                Command="{Binding ToggleJiggleCommand}"
-                Margin="20"
-                Padding="15,10"
-                FontSize="16"
-                FontWeight="SemiBold"/>
+        <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Jiggle mode" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="16"/>
+            <ToggleButton Grid.Column="1" IsChecked="{Binding IsJigglingActive, Mode=TwoWay}" VerticalAlignment="Center">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="border" BorderBrush="LightGray" BorderThickness="1" CornerRadius="15" Width="60" Height="30" Background="LightGray">
+                                <Border.Effect>
+                                    <DropShadowEffect ShadowDepth="1" Color="Gray" Opacity="0.3" BlurRadius="5"/>
+                                </Border.Effect>
+                            </Border>
+                            <Ellipse x:Name="dot" Fill="White" Width="24" Height="24" HorizontalAlignment="Left" Margin="3,0,0,0">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect ShadowDepth="1" Color="Gray" Opacity="0.5" BlurRadius="3"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#4CD964"/>
+                                <Setter TargetName="dot" Property="HorizontalAlignment" Value="Right"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+            </ToggleButton>
+        </Grid>
 
         <!-- Placeholder for Settings button/link -->
         <TextBlock Grid.Row="2" Margin="0,0,0,10" HorizontalAlignment="Center">
