@@ -65,7 +65,7 @@
 
 1.  Клонируйте репозиторий:
     ```bash
-    git clone https://github.com/your-repo/mouse-jiggler-pro.git
+    git clone [https://github.com/your-repo/mouse-jiggler-pro.git]
     ```
 2.  Откройте файл решения (`MouseJigglerPro/MouseJigglerPro.csproj`) в Visual Studio.
 3.  Соберите проект (Build -> Build Solution). Исполняемый файл появится в папке `bin/Debug` или `bin/Release`.
