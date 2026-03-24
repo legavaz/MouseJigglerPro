@@ -3,6 +3,7 @@ using MouseJigglerPro.MVVM.Model;
 using MouseJigglerPro.Services;
 using MouseJigglerPro.MVVM.View;
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 
@@ -17,7 +18,16 @@ namespace MouseJigglerPro.MVVM.ViewModel
         private readonly SettingsService _settingsService;
         private readonly JiggleEngine _jiggleEngine;
         private readonly ZenModeService _zenModeService;
+        private readonly IdleTimerService _idleTimerService;
         private Settings _settings; // Текущие настройки приложения.
+
+        // Свойство для времени бездействия пользователя в секундах.
+        private int _idleTimeSeconds = 0;
+        public int IdleTimeSeconds
+        {
+            get => _idleTimeSeconds;
+            set => SetProperty(ref _idleTimeSeconds, value);
+        }
 
         // Свойство для текста статуса, отображаемого в окне.
         private string _statusText = "Неактивен";
@@ -52,8 +62,16 @@ namespace MouseJigglerPro.MVVM.ViewModel
             _settings = _settingsService.LoadSettings();
             _jiggleEngine = new JiggleEngine(_settings);
             _zenModeService = new ZenModeService(_settings, _jiggleEngine);
+            _idleTimerService = new IdleTimerService();
+            
             // Подписка на событие изменения состояния Zen Mode.
             _zenModeService.StateChanged += OnZenModeStateChanged;
+            
+            // Подписка на событие изменения времени бездействия.
+            _idleTimerService.IdleTimeChanged += OnIdleTimeChanged;
+            
+            // Запускаем мониторинг бездействия.
+            _idleTimerService.Start();
 
             // Инициализация команд.
             OpenSettingsCommand = new RelayCommand(OpenSettings);
@@ -63,36 +81,114 @@ namespace MouseJigglerPro.MVVM.ViewModel
 
         /// <summary>
         /// Метод, который запускает или останавливает движение мыши.
+        /// При включении всегда ожидает таймаут бездействия перед началом эмуляции.
         /// </summary>
         private void ToggleJiggle()
         {
             if (IsJigglingActive)
             {
-                if (_settings.IsZenModeEnabled)
-                {
-                    _zenModeService.Start();
-                    StatusText = "Zen Mode (ожидание)";
-                    (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("zen.ico");
-                }
-                else
-                {
-                    _jiggleEngine.Start();
-                    StatusText = "Активен";
-                    (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("active.ico");
-                }
+                // Всегда показываем ожидание при включении
+                // Движение начнётся автоматически когда idle time достигнет таймаута
+                StatusText = "Ожидание бездействия...";
+                (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("zen.ico");
+                
+                // Запускаем мониторинг бездействия для автоматического старта
+                StartIdleMonitoring();
             }
             else
             {
-                if (_zenModeService.IsActive)
-                {
-                    _zenModeService.Stop();
-                }
-                else if (_jiggleEngine.IsRunning)
-                {
-                    _jiggleEngine.Stop();
-                }
+                // Останавливаем все сервисы при выключении
+                StopAllServices();
                 StatusText = "Неактивен";
                 (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
+            }
+        }
+        
+        /// <summary>
+        /// Запускает мониторинг бездействия для автоматического начала эмуляции.
+        /// </summary>
+        private void StartIdleMonitoring()
+        {
+            // Если уже запущен мониторинг - не запускать повторно
+            if (_idleMonitoringActive) return;
+            
+            _idleMonitoringActive = true;
+            _idleMonitoringCancel = new CancellationTokenSource();
+            
+            Task.Run(() => IdleMonitoringLoop(_idleMonitoringCancel.Token));
+        }
+        
+        private bool _idleMonitoringActive;
+        private CancellationTokenSource? _idleMonitoringCancel;
+        
+        /// <summary>
+        /// Цикл мониторинга бездействия. Запускает движение мыши когда idle time достигает таймаута.
+        /// </summary>
+        private async Task IdleMonitoringLoop(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested && IsJigglingActive)
+            {
+                try
+                {
+                    await Task.Delay(1000, token);
+                    
+                    // Проверяем текущий idle time
+                    uint idleTimeMs = (uint)Environment.TickCount - Core.PInvokeHelper.GetLastInputTime();
+                    int currentIdleSeconds = (int)(idleTimeMs / 1000);
+                    
+                    // Проверяем условие: idle time >= таймаут из настроек
+                    if (currentIdleSeconds >= _settings.ZenModeIdleTimeSeconds)
+                    {
+                        // Проверяем что движение ещё не запущено
+                        if (!_jiggleEngine.IsRunning)
+                        {
+                            _jiggleEngine.Start();
+                            
+                            // Обновляем UI в главном потоке
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                StatusText = "Активен";
+                                (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("active.ico");
+                            });
+                            
+                            // Выходим из мониторинга - движение теперь управляется JiggleEngine
+                            break;
+                        }
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
+            }
+            
+            _idleMonitoringActive = false;
+        }
+        
+        /// <summary>
+        /// Останавливает все активные сервисы.
+        /// </summary>
+        private void StopAllServices()
+        {
+            // Останавливаем мониторинг бездействия
+            if (_idleMonitoringCancel != null)
+            {
+                _idleMonitoringCancel.Cancel();
+                _idleMonitoringCancel.Dispose();
+                _idleMonitoringCancel = null;
+            }
+            _idleMonitoringActive = false;
+            
+            // Останавливаем ZenMode если активен
+            if (_zenModeService.IsActive)
+            {
+                _zenModeService.Stop();
+            }
+            
+            // Останавливаем JiggleEngine если запущен
+            if (_jiggleEngine.IsRunning)
+            {
+                _jiggleEngine.Stop();
             }
         }
 
@@ -125,6 +221,8 @@ namespace MouseJigglerPro.MVVM.ViewModel
         private void ExitApplication(object? parameter)
         {
             // Освобождаем ресурсы перед выходом.
+            StopAllServices(); // Останавливаем мониторинг бездействия и все сервисы
+            _idleTimerService.Dispose();
             _zenModeService.Dispose();
             _jiggleEngine.Dispose();
             System.Windows.Application.Current.Shutdown();
@@ -151,6 +249,14 @@ namespace MouseJigglerPro.MVVM.ViewModel
                     (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("default.ico");
                     break;
             }
+        }
+
+        /// <summary>
+        /// Обработчик события изменения времени бездействия.
+        /// </summary>
+        private void OnIdleTimeChanged(int idleTimeSeconds)
+        {
+            IdleTimeSeconds = idleTimeSeconds;
         }
 
     }

@@ -19,6 +19,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -29,7 +30,13 @@
                    VerticalAlignment="Center"
                    Foreground="DarkSlateGray"/>
 
-        <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,10">
+            <TextBlock Text="Бездействие: " FontSize="12" VerticalAlignment="Center" Foreground="Gray"/>
+            <TextBlock Text="{Binding IdleTimeSeconds}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Foreground="#666666"/>
+            <TextBlock Text=" сек" FontSize="12" VerticalAlignment="Center" Foreground="Gray"/>
+        </StackPanel>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -62,7 +69,7 @@
         </Grid>
 
         <!-- Placeholder for Settings button/link -->
-        <TextBlock Grid.Row="2" Margin="0,0,0,10" HorizontalAlignment="Center">
+        <TextBlock Grid.Row="3" Margin="0,0,0,10" HorizontalAlignment="Center">
             <Hyperlink Command="{Binding OpenSettingsCommand}">Настройки</Hyperlink>
         </TextBlock>
 

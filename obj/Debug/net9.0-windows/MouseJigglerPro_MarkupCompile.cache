@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-D:\project\jiggerPro\MouseJigglerPro\obj\Debug\net9.0-windows\
+d:\project\jiggerPro\MouseJigglerPro\obj\Debug\net9.0-windows\
 MouseJigglerPro
 none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-D:\project\jiggerPro\MouseJigglerPro\App.xaml
+d:\project\jiggerPro\MouseJigglerPro\App.xaml
 2-1556481016
 
-13-1618924612
-2101134995243
+14899314447
+2101326205372
 MVVM\View\MainWindow.xaml;MVVM\View\SettingsWindow.xaml;
 
 False
