@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MouseJigglerPro")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+72bf29180a7b5aada87cbc3c9b84aafbecd08ba9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8686d9090dfec8587700a026a1b10f23c109bb85")]
 [assembly: System.Reflection.AssemblyProductAttribute("MouseJigglerPro")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MouseJigglerPro")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

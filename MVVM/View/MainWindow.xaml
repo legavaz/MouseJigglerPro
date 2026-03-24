@@ -34,6 +34,9 @@
             <TextBlock Text="Бездействие: " FontSize="12" VerticalAlignment="Center" Foreground="Gray"/>
             <TextBlock Text="{Binding IdleTimeSeconds}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Foreground="#666666"/>
             <TextBlock Text=" сек" FontSize="12" VerticalAlignment="Center" Foreground="Gray"/>
+            <TextBlock Text=" | " FontSize="12" VerticalAlignment="Center" Foreground="LightGray"/>
+            <TextBlock Text="Ввод: " FontSize="12" VerticalAlignment="Center" Foreground="Gray"/>
+            <TextBlock Text="{Binding InputLanguage}" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Foreground="#4CD964"/>
         </StackPanel>
 
         <Grid Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">

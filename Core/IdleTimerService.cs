@@ -8,6 +8,7 @@ namespace MouseJigglerPro.Core
     /// Сервис для отслеживания времени бездействия пользователя.
     /// Каждую секунду обновляет значение IdleTimeSeconds, которое сбрасывается в 0
     /// при любой активности пользователя (движение мыши, нажатие клавиш).
+    /// Игнорирует программный ввод от JiggleEngine.
     /// </summary>
     public class IdleTimerService : IDisposable
     {
@@ -27,6 +28,17 @@ namespace MouseJigglerPro.Core
         /// Указывает, активен ли сервис мониторинга.
         /// </summary>
         public bool IsRunning { get; private set; }
+        
+        /// <summary>
+        /// Время (в мс) когда начался последний период программного ввода.
+        /// Используется для корректировки времени бездействия.
+        /// </summary>
+        private uint _programmaticInputStartTime;
+        
+        /// <summary>
+        /// Накопленное время программного ввода (в мс).
+        /// </summary>
+        private uint _accumulatedProgrammaticTime;
 
         public IdleTimerService()
         {
@@ -54,12 +66,15 @@ namespace MouseJigglerPro.Core
             _cancellationTokenSource?.Cancel();
             IsRunning = false;
             IdleTimeSeconds = 0;
+            _programmaticInputStartTime = 0;
+            _accumulatedProgrammaticTime = 0;
             IdleTimeChanged?.Invoke(0);
         }
 
         /// <summary>
         /// Асинхронный цикл мониторинга бездействия.
         /// Каждую секунду проверяет время с последнего ввода пользователя.
+        /// Игнорирует программный ввод от JiggleEngine.
         /// </summary>
         private async Task MonitorLoop(CancellationToken token)
         {
@@ -71,8 +86,32 @@ namespace MouseJigglerPro.Core
                 {
                     await Task.Delay(1000, token);
 
-                    // Получаем время с момента последнего ввода в миллисекундах
-                    uint idleTimeMs = (uint)Environment.TickCount - PInvokeHelper.GetLastInputTime();
+                    // Проверяем, начался ли программный ввод
+                    if (JiggleEngine.IsProgrammaticInputActive && _programmaticInputStartTime == 0)
+                    {
+                        _programmaticInputStartTime = (uint)Environment.TickCount;
+                    }
+                    // Проверяем, завершился ли программный ввод
+                    else if (!JiggleEngine.IsProgrammaticInputActive && _programmaticInputStartTime != 0)
+                    {
+                        // Накапливаем время программного ввода
+                        uint programmaticDuration = (uint)Environment.TickCount - _programmaticInputStartTime;
+                        _accumulatedProgrammaticTime += programmaticDuration;
+                        _programmaticInputStartTime = 0;
+                    }
+
+                    // Получаем время с момента последнего РЕАЛЬНОГО ввода в миллисекундах
+                    uint idleTimeMs = (uint)Environment.TickCount - PInvokeHelper.GetLastRealInputTime();
+                    
+                    // Вычитаем накопленное время программного ввода
+                    if (idleTimeMs > _accumulatedProgrammaticTime)
+                    {
+                        idleTimeMs -= _accumulatedProgrammaticTime;
+                    }
+                    else
+                    {
+                        idleTimeMs = 0;
+                    }
                     
                     // Конвертируем в секунды
                     int currentIdleSeconds = (int)(idleTimeMs / 1000);
@@ -104,6 +143,8 @@ namespace MouseJigglerPro.Core
         public void Reset()
         {
             IdleTimeSeconds = 0;
+            _programmaticInputStartTime = 0;
+            _accumulatedProgrammaticTime = 0;
             IdleTimeChanged?.Invoke(0);
         }
 

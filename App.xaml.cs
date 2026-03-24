@@ -1,3 +1,4 @@
+using MouseJigglerPro.Core;
 using MouseJigglerPro.Services;
 using System.Windows;
 
@@ -19,6 +20,9 @@ namespace MouseJigglerPro
 
             try
             {
+                // Инициализируем хуки для отслеживания реального ввода пользователя
+                PInvokeHelper.InitializeInputHooks();
+
                 // Создаем экземпляр сервиса для работы с настройками.
                 var settingsService = new SettingsService();
                 // Загружаем настройки из файла (или используем значения по умолчанию).
@@ -48,6 +52,13 @@ namespace MouseJigglerPro
                 // Завершаем работу приложения.
                 this.Shutdown();
             }
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            // Очищаем хуки при выходе из приложения
+            PInvokeHelper.CleanupInputHooks();
+            base.OnExit(e);
         }
     }
 }

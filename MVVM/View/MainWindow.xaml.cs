@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace MouseJigglerPro.MVVM.View
 {
@@ -15,6 +16,7 @@ namespace MouseJigglerPro.MVVM.View
         // Поле для хранения иконки в системном трее.
         private readonly NotifyIcon _notifyIcon;
         private bool _isWindowLoaded = false;
+        private readonly DispatcherTimer _inputLanguageTimer;
 
         public MainWindow()
         {
@@ -44,6 +46,32 @@ namespace MouseJigglerPro.MVVM.View
 
             // Устанавливаем флаг после полной загрузки окна.
             this.Loaded += (s, e) => { _isWindowLoaded = true; };
+
+            // Обновляем язык ввода при активации окна
+            this.Activated += MainWindow_Activated;
+
+            // Создаем таймер для периодического обновления языка ввода
+            _inputLanguageTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1) // Проверяем каждую секунду
+            };
+            _inputLanguageTimer.Tick += (s, e) =>
+            {
+                if (DataContext is MainViewModel viewModel)
+                {
+                    viewModel.UpdateInputLanguage();
+                }
+            };
+            _inputLanguageTimer.Start();
+        }
+
+        private void MainWindow_Activated(object? sender, EventArgs e)
+        {
+            // Обновляем язык ввода при получении фокуса окном
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.UpdateInputLanguage();
+            }
         }
 
         /// <summary>
@@ -141,6 +169,9 @@ namespace MouseJigglerPro.MVVM.View
         /// </summary>
         protected override void OnClosing(CancelEventArgs e)
         {
+            // Останавливаем таймер обновления языка ввода
+            _inputLanguageTimer.Stop();
+            
             // Освобождаем ресурсы, занимаемые иконкой в трее, чтобы она не "зависла" после закрытия приложения.
             _notifyIcon.Dispose();
             base.OnClosing(e);

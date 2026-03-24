@@ -80,10 +80,12 @@ namespace MouseJigglerPro.Core
                     // Проверяем состояние каждую секунду.
                     await Task.Delay(1000, token);
 
-                    // Получаем время с момента последнего ввода пользователя.
-                    uint idleTime = (uint)Environment.TickCount - PInvokeHelper.GetLastInputTime();
+                    // Получаем время с момента последнего РЕАЛЬНОГО ввода пользователя.
+                    uint idleTime = (uint)Environment.TickCount - PInvokeHelper.GetLastRealInputTime();
                     // Проверяем, превышает ли время простоя заданное в настройках.
-                    bool isUserIdle = idleTime > _settings.ZenModeIdleTimeSeconds * 1000;
+                    // Также учитываем, что если JiggleEngine выполняет программное движение,
+                    // это не считается активностью пользователя - используем IsJiggling.
+                    bool isUserIdle = idleTime > _settings.ZenModeIdleTimeSeconds * 1000 || _jiggleEngine.IsJiggling;
                     // Проверяем, является ли активное окно полноэкранным.
                     bool isFullScreen = PInvokeHelper.IsForegroundWindowFullScreen();
 

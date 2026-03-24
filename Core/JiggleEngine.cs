@@ -13,11 +13,24 @@ namespace MouseJigglerPro.Core
         private CancellationTokenSource? _cancellationTokenSource; // Источник токенов для отмены асинхронных операций.
         private readonly Settings _settings; // Настройки, влияющие на поведение движка.
         private readonly Random _random = new(); // Генератор случайных чисел.
+        
+        /// <summary>
+        /// Статический флаг, указывающий, выполняется ли в данный момент программный ввод.
+        /// Используется IdleTimerService для игнорирования программного движения мыши.
+        /// </summary>
+        public static bool IsProgrammaticInputActive { get; private set; }
 
         /// <summary>
         /// Указывает, запущен ли в данный момент движок.
         /// </summary>
         public bool IsRunning { get; private set; }
+
+        /// <summary>
+        /// Указывает, выполняется ли в данный момент эмуляция движения мыши.
+        /// Используется для того, чтобы IdleTimerService не сбрасывал счетчик бездействия
+        /// при программном движении мыши.
+        /// </summary>
+        public bool IsJiggling { get; private set; }
 
         public JiggleEngine(Settings settings)
         {
@@ -41,6 +54,12 @@ namespace MouseJigglerPro.Core
         /// Останавливает цикл движения мыши.
         /// </summary>
         public event Action? StoppedByUser;
+        
+        /// <summary>
+        /// Событие, возникающее после завершения одного цикла эмуляции движения мыши.
+        /// </summary>
+        public event Action? JiggleCompleted;
+        
         public void Stop()
         {
             if (!IsRunning) return; // Не останавливать, если уже остановлен.
@@ -68,6 +87,8 @@ namespace MouseJigglerPro.Core
                     if (token.IsCancellationRequested) break;
 
                     // Выполняем движение мыши.
+                    IsJiggling = true;
+                    IsProgrammaticInputActive = true;
                     JiggleMouse();
                 }
                 catch (TaskCanceledException)
@@ -113,6 +134,11 @@ namespace MouseJigglerPro.Core
             {
                 PInvokeHelper.SendPhantomKeystroke();
             }
+            
+            // Сообщаем о завершении цикла движения.
+            IsJiggling = false;
+            IsProgrammaticInputActive = false;
+            JiggleCompleted?.Invoke();
         }
 
         /// <summary>

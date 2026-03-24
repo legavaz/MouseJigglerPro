@@ -37,6 +37,14 @@ namespace MouseJigglerPro.MVVM.ViewModel
             set => SetProperty(ref _statusText, value);
         }
 
+        // Свойство для текущего языка ввода
+        private string _inputLanguage = "EN";
+        public string InputLanguage
+        {
+            get => _inputLanguage;
+            set => SetProperty(ref _inputLanguage, value);
+        }
+
         private bool _isJigglingActive;
         public bool IsJigglingActive
         {
@@ -70,6 +78,9 @@ namespace MouseJigglerPro.MVVM.ViewModel
             // Подписка на событие изменения времени бездействия.
             _idleTimerService.IdleTimeChanged += OnIdleTimeChanged;
             
+            // Подписка на событие изменения языка ввода
+            Core.PInvokeHelper.InputLanguageChanged += OnInputLanguageChanged;
+            
             // Запускаем мониторинг бездействия.
             _idleTimerService.Start();
 
@@ -77,6 +88,25 @@ namespace MouseJigglerPro.MVVM.ViewModel
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             ShowWindowCommand = new RelayCommand(ShowWindow);
             ExitApplicationCommand = new RelayCommand(ExitApplication);
+
+            // Инициализация языка ввода
+            UpdateInputLanguage();
+        }
+
+        /// <summary>
+        /// Обновляет текущий язык ввода на основе активного окна системы.
+        /// </summary>
+        public void UpdateInputLanguage()
+        {
+            InputLanguage = Core.PInvokeHelper.GetCurrentInputLanguage();
+        }
+
+        /// <summary>
+        /// Обработчик события изменения языка ввода.
+        /// </summary>
+        private void OnInputLanguageChanged(string language)
+        {
+            InputLanguage = language;
         }
 
         /// <summary>
@@ -122,7 +152,8 @@ namespace MouseJigglerPro.MVVM.ViewModel
         private CancellationTokenSource? _idleMonitoringCancel;
         
         /// <summary>
-        /// Цикл мониторинга бездействия. Запускает движение мыши когда idle time достигает таймаута.
+        /// Цикл мониторинга бездействия. Запускает движение мыши когда idle time достигает таймаута,
+        /// и останавливает когда пользователь активен.
         /// </summary>
         private async Task IdleMonitoringLoop(CancellationToken token)
         {
@@ -132,14 +163,18 @@ namespace MouseJigglerPro.MVVM.ViewModel
                 {
                     await Task.Delay(1000, token);
                     
-                    // Проверяем текущий idle time
-                    uint idleTimeMs = (uint)Environment.TickCount - Core.PInvokeHelper.GetLastInputTime();
+                    // Проверяем текущий idle time (реальный ввод)
+                    uint idleTimeMs = (uint)Environment.TickCount - Core.PInvokeHelper.GetLastRealInputTime();
                     int currentIdleSeconds = (int)(idleTimeMs / 1000);
                     
                     // Проверяем условие: idle time >= таймаут из настроек
-                    if (currentIdleSeconds >= _settings.ZenModeIdleTimeSeconds)
+                    // Учитываем, что программное движение мыши (от JiggleEngine) не должно
+                    // сбрасывать счетчик бездействия
+                    bool shouldJiggle = currentIdleSeconds >= _settings.ZenModeIdleTimeSeconds || _jiggleEngine.IsJiggling;
+                    
+                    if (shouldJiggle)
                     {
-                        // Проверяем что движение ещё не запущено
+                        // Запускаем движок если ещё не запущен
                         if (!_jiggleEngine.IsRunning)
                         {
                             _jiggleEngine.Start();
@@ -150,9 +185,21 @@ namespace MouseJigglerPro.MVVM.ViewModel
                                 StatusText = "Активен";
                                 (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("active.ico");
                             });
+                        }
+                    }
+                    else
+                    {
+                        // Пользователь активен - останавливаем движок если запущен
+                        if (_jiggleEngine.IsRunning)
+                        {
+                            _jiggleEngine.Stop();
                             
-                            // Выходим из мониторинга - движение теперь управляется JiggleEngine
-                            break;
+                            // Обновляем UI в главном потоке
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                StatusText = "Ожидание бездействия...";
+                                (System.Windows.Application.Current.MainWindow as MainWindow)?.SetTrayIcon("zen.ico");
+                            });
                         }
                     }
                 }
